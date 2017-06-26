@@ -58,6 +58,7 @@ namespace CheeseMVC.Controllers
                 .CheeseMenus
                 .Include(item => item.Cheese)
                 .Where(cm => cm.MenuID == id)
+                .OrderBy(cm => cm.Cheese.Name.ToUpper())
                 .ToList();
 
             Menu menu = context.Menus.Single(m => m.ID == id);
@@ -74,7 +75,14 @@ namespace CheeseMVC.Controllers
         public IActionResult AddItem(int id)
         {
             Menu menu = context.Menus.Single(m => m.ID == id);
-            List<Cheese> cheeses = context.Cheeses.ToList();
+            IList<int> existingCheeses = context.CheeseMenus
+                .Where(cm => cm.MenuID == id)
+                .Select(cm => cm.CheeseID).ToList();
+
+            List<Cheese> cheeses = context.Cheeses
+                .OrderBy(c => c.Name.ToUpper())
+                .Where(c => ! existingCheeses.Contains(c.ID)).ToList();
+
             return View(new AddMenuItemViewModel(menu, cheeses));
         }
 
